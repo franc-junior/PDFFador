@@ -1,7 +1,9 @@
 import tkinter as tk
+import os
 from tkinter import ttk
 from tkinter import filedialog
 from pdf2image import convert_from_path
+from PIL import Image, ImageTk
 
 class Separador():
     def __init__(self):
@@ -14,6 +16,8 @@ class Separador():
         self.botao_atualizar = ttk.Button()
         self.botao_separar = ttk.Button()
         self.canvas = tk.Canvas()
+        self.imagem_tk = None
+        
     
     def janela1(self):
         #tela
@@ -75,7 +79,7 @@ class Separador():
         style.configure("Custom.TButton", font=("Helvetica", 16))  # Altere o tamanho da fonte conforme necessário    
             #botão atualizar
         self.botao_atualizar.place(x=40, y=350)
-        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton", command=self.abrir_pdf())
+        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton")
             #botão separar
         self.botao_separar.place(x=200, y=350)
         self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.busca_arquivo)
@@ -96,17 +100,30 @@ class Separador():
         self.abrir_pdf(file_path)
     
     def abrir_pdf(self, caminho):
-        imagens = convert_from_path(caminho) # Limpe o Canvas, caso já haja imagens anteriores
+        #print(r"{}\poppler-23.08.0\Library\bin".format(os.getcwd()))
+        #print(type(caminho))
+        #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"
         self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
+        imagens = convert_from_path(caminho) # converte as paginas para imagem
 
+        imagem = imagens[0]
+        redemensionada = imagem.resize((400,550))
+        
+
+        self.imagem_tk = ImageTk.PhotoImage(redemensionada)
+        self.canvas.create_image(200, 0, anchor=tk.N, image=self.imagem_tk)
+        
+        #imagem.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
+        
+        self.canvas.update()
         # Exiba cada imagem no Canvas
-        for imagem in imagens:
-            imagem_tk = ImageTk.PhotoImage(imagem)
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=imagem_tk)
-            self.canvas.update()
-            
+        # for imagem in imagens:
+        #     imagem_tk = ImageTk.PhotoImage(imagem)
+        #     self.canvas.create_image(0, 0, anchor=tk.NW, image=imagem_tk)
+        #     self.canvas.update()
+        #     print(imagem_tk)
             # Mantenha uma referência para a imagem para evitar que seja coletada pelo garbage collector
-            imagens_tk.append(imagem_tk)
+        #imagem_tk.append(imagem)
            
         
     def para_testar(self):    
