@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from pdf2image import convert_from_path
 from PIL import Image, ImageTk
+from tkinter import Canvas, Scrollbar
 
 class Separador():
     def __init__(self):
@@ -17,7 +18,10 @@ class Separador():
         self.botao_separar = ttk.Button()
         self.canvas = tk.Canvas()
         self.imagem_tk = None
-        
+        self.imagem_tk2 = None
+        self.nome_pdf = ttk.Entry()
+        self.num_pdf = ttk.Spinbox()
+        self.scrollbar = Scrollbar()
     
     def janela1(self):
         #tela
@@ -84,9 +88,19 @@ class Separador():
         self.botao_separar.place(x=200, y=350)
         self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.busca_arquivo)
 
+        #Area que mostra a imagem
         self.canvas.configure(width=390, height=400)
         self.canvas.place(x=390)
-        self.canvas.create_rectangle(0, 0, 390, 300, fill="#FBF7B9")
+        self.canvas.create_rectangle(1, 1, 390, 300, fill="#FBF7B9")
+               
+        #Edição do nome do pdf  
+            #setas que muda de pdf
+        self.num_pdf.place(x=720, y=350)
+        self.num_pdf.configure(from_=1, to=100, increment=1, width=3, font=("Helvetica", 16))
+            #campo de texto que renomeia o pdf
+        self.nome_pdf.place(x=390, y=350)
+        self.nome_pdf.configure(width=25, font=("Helvetica", 16))
+
                
         self.root.mainloop()
         
@@ -103,19 +117,42 @@ class Separador():
         #print(r"{}\poppler-23.08.0\Library\bin".format(os.getcwd()))
         #print(type(caminho))
         #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"
+        
         self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
         imagens = convert_from_path(caminho) # converte as paginas para imagem
 
         imagem = imagens[0]
-        redemensionada = imagem.resize((400,550))
+        imagem2 = imagens[1].resize((400,570))
         
-
+        redemensionada = imagem.resize((400,570))
+        
+        self.imagem_tk2 = ImageTk.PhotoImage(imagem2)
         self.imagem_tk = ImageTk.PhotoImage(redemensionada)
+        
+        #cria as imagens
         self.canvas.create_image(200, 0, anchor=tk.N, image=self.imagem_tk)
+        self.canvas.create_image(200, 580, anchor=tk.N, image=self.imagem_tk2)
+        
+        #contador que indica onde a imagem vai aparecer, no lugar do 580
+        #y += imagem.height() + 10
+        
+        #limita a rolagem
+        self.canvas.config(scrollregion=(0, 0, 0, 1200), width=400, height=330)
+        
+        #atualiza o canvas
+        self.canvas.update()
+        
+        #define o scroll
+        self.scrollbar.configure(orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        
+        # Ative a rolagem com a roda do mouse
+        self.canvas.bind_all("<MouseWheel>", self.rolar)
         
         #imagem.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
         
-        self.canvas.update()
         # Exiba cada imagem no Canvas
         # for imagem in imagens:
         #     imagem_tk = ImageTk.PhotoImage(imagem)
@@ -125,7 +162,9 @@ class Separador():
             # Mantenha uma referência para a imagem para evitar que seja coletada pelo garbage collector
         #imagem_tk.append(imagem)
            
-        
+    def rolar(self, event):
+        self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
+
     def para_testar(self):    
         linha_horizontal = ttk.Separator(root, orient='horizontal')
         linha_horizontal.pack(fill='x', padx=20, pady=20)
