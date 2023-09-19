@@ -18,10 +18,10 @@ class Separador():
         self.botao_separar = ttk.Button()
         self.canvas = tk.Canvas()
         self.imagem_tk = None
-        self.imagem_tk2 = None
         self.nome_pdf = ttk.Entry()
         self.num_pdf = ttk.Spinbox()
         self.scrollbar = Scrollbar()
+        self.imagens_tks = []
     
     def janela1(self):
         #tela
@@ -51,6 +51,7 @@ class Separador():
         label1.place(x=40, y=120)
         self.campo_qt_paginas.place(x=100, y=121)
         self.campo_qt_paginas.configure(from_=1, to=2, increment=1, width=5)
+        self.campo_qt_paginas.insert(0,1)
         
         #dados do pdf x=horizontal, y=vertical
             #linha
@@ -106,12 +107,15 @@ class Separador():
         
     def busca_arquivo(self):
         file_path = filedialog.askopenfilename(title="Selecione um arquivo", filetypes=[("PDF", "*.pdf")])
-        self.campo1.config(state=tk.NORMAL)    # Habilita a edição temporariamente
-        self.campo1.delete(0, tk.END)          # Apaga todo o texto do Entry
-        self.campo1.insert(0, file_path)
-        self.campo1.config(state=tk.DISABLED)  # Bloqueia a edição novamente
         
+        self.escreverEntry(self.campo1, file_path)
         self.abrir_pdf(file_path)
+    
+    def escreverEntry(self, campo, escrita):
+        campo.config(state=tk.NORMAL)    # Habilita a edição temporariamente
+        campo.delete(0, tk.END)          # Apaga todo o texto do Entry
+        campo.insert(0, escrita)
+        campo.config(state=tk.DISABLED)  # Bloqueia a edição novamente
     
     def abrir_pdf(self, caminho):
         #print(r"{}\poppler-23.08.0\Library\bin".format(os.getcwd()))
@@ -119,54 +123,37 @@ class Separador():
         #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"
         
         self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
-        imagens = convert_from_path(caminho) # converte as paginas para imagem
+        imagens = convert_from_path(caminho) # converte as paginas para uma lista de imagem
+        
+        self.escreverEntry(self.qt_folhas, len(imagens))
+        self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))
+               
+        y = 0 #contador que devine o espaço entre as imagens e o tamanho do scrollregion
+        for img in imagens: #loop para empilhar as imagens do pdf
+            self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
+            self.canvas.create_image(200, y, anchor=tk.N, image=self.imagem_tk) #coloca a imagem no canvas
+                
+            self.imagens_tks.append(self.imagem_tk) #adiciona a imagem a uma lista, para que ela não se perda e continue aparecendo no canvas
+            
+            y += 550
+            
+        self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
+        self.canvas.update() #atualiza o canvas com as noavs imagens
 
-        imagem = imagens[0]
-        imagem2 = imagens[1].resize((400,570))
-        
-        redemensionada = imagem.resize((400,570))
-        
-        self.imagem_tk2 = ImageTk.PhotoImage(imagem2)
-        self.imagem_tk = ImageTk.PhotoImage(redemensionada)
-        
-        #cria as imagens
-        self.canvas.create_image(200, 0, anchor=tk.N, image=self.imagem_tk)
-        self.canvas.create_image(200, 580, anchor=tk.N, image=self.imagem_tk2)
-        
-        #contador que indica onde a imagem vai aparecer, no lugar do 580
-        #y += imagem.height() + 10
-        
-        #limita a rolagem
-        self.canvas.config(scrollregion=(0, 0, 0, 1200), width=400, height=330)
-        
-        #atualiza o canvas
-        self.canvas.update()
-        
         #define o scroll
         self.scrollbar.configure(orient="vertical", command=self.canvas.yview)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        
-        # Ative a rolagem com a roda do mouse
-        self.canvas.bind_all("<MouseWheel>", self.rolar)
-        
+        self.canvas.bind_all("<MouseWheel>", self.rolar) # Ative a rolagem com a roda do mouse
+
         #imagem.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
-        
-        # Exiba cada imagem no Canvas
-        # for imagem in imagens:
-        #     imagem_tk = ImageTk.PhotoImage(imagem)
-        #     self.canvas.create_image(0, 0, anchor=tk.NW, image=imagem_tk)
-        #     self.canvas.update()
-        #     print(imagem_tk)
-            # Mantenha uma referência para a imagem para evitar que seja coletada pelo garbage collector
-        #imagem_tk.append(imagem)
            
     def rolar(self, event):
         self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
 
     def para_testar(self):    
-        linha_horizontal = ttk.Separator(root, orient='horizontal')
+        linha_horizontal = ttk.Separator(orient='horizontal')
         linha_horizontal.pack(fill='x', padx=20, pady=20)
 
 inicialize = Separador()
