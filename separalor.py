@@ -1,59 +1,64 @@
+import math
 import tkinter as tk
-import os
-from tkinter import ttk
-from tkinter import filedialog
+import PyPDF2
+from tkinter import ttk, filedialog, Scrollbar
 from pdf2image import convert_from_path
-from PIL import Image, ImageTk
-from tkinter import Canvas, Scrollbar
+from PIL import ImageTk
 
 class Separador():
     def __init__(self):
         self.root = tk.Tk()
+        #button
         self.botao_selecionar = ttk.Button()
+        self.botao_atualizar = ttk.Button()
+        self.botao_separar = ttk.Button()
+        #entry
         self.campo1 = ttk.Entry()
         self.qt_folhas = ttk.Entry()
         self.qt_dividi = ttk.Entry()
-        self.campo_qt_paginas = ttk.Spinbox()
-        self.botao_atualizar = ttk.Button()
-        self.botao_separar = ttk.Button()
-        self.canvas = tk.Canvas()
-        self.imagem_tk = None
         self.nome_pdf = ttk.Entry()
+        #spinbox
+        self.campo_qt_paginas = ttk.Spinbox()
         self.num_pdf = ttk.Spinbox()
+        #outros
+        self.canvas = tk.Canvas()
         self.scrollbar = Scrollbar()
+        self.imagem_tk = None
         self.imagens_tks = []
+        self.caminho = None
     
     def janela1(self):
         #tela
         self.root.geometry("800x400")
         self.root.resizable(False, False)
-        
+         
+        #CAMINHO
+            #Texto caminho
         label6 = ttk.Label(text="Caminho:",font=("Helvetica", 11, "bold"))
         label6.place(x=20, y=5)
-        
-        #botão selecionar
+            #botão selecionar
         self.botao_selecionar.place(x=40, y=40)
         self.botao_selecionar.configure(text="Selecionar", command=self.busca_arquivo)
-        
-        #campo de texto - endereço 
+            #campo de texto que mostra o caminho do arquivo
         self.campo1.place(x=120, y=41)
         self.campo1.configure(width=41)
-        
+            #linha horizontal
         linha_horizontal = ttk.Separator(self.root, orient='horizontal')
         linha_horizontal.place(x=20, y=87, relwidth=0.45)
-        
                
-        #campo numero de paginas por aquivo
+        #PARAMETROS
+            #texto parametros
         label5 = ttk.Label(text="Parametros:",font=("Helvetica", 11, "bold"))
         label5.place(x=20, y=88)
-        
+            #texto intervalo
         label1 = ttk.Label(text="Intervalo:",font=("Helvetica", 10))
         label1.place(x=40, y=120)
+            #campo para definir a separação das paginas
         self.campo_qt_paginas.place(x=100, y=121)
         self.campo_qt_paginas.configure(from_=1, to=2, increment=1, width=5)
         self.campo_qt_paginas.insert(0,1)
         
-        #dados do pdf x=horizontal, y=vertical
+        #DADOS do pdf x=horizontal, y=vertical
             #linha
         linha_horizontal2 = ttk.Separator(self.root, orient='horizontal')
         linha_horizontal2.place(x=20, y=182, relwidth=0.45)
@@ -76,9 +81,9 @@ class Separador():
             #linha
         linha_horizontal3 = ttk.Separator(self.root, orient='horizontal')
         linha_horizontal3.place(x=20, y=300, relwidth=0.45)
+            #Texto ações
         label5 = ttk.Label(text="Ações:",font=("Helvetica", 11, "bold"))
         label5.place(x=20, y=301)
-        
             #estilo dos botões
         style = ttk.Style()
         style.configure("Custom.TButton", font=("Helvetica", 16))  # Altere o tamanho da fonte conforme necessário    
@@ -87,7 +92,7 @@ class Separador():
         self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton")
             #botão separar
         self.botao_separar.place(x=200, y=350)
-        self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.busca_arquivo)
+        self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.separar_pdf)
 
         #Area que mostra a imagem
         self.canvas.configure(width=390, height=400)
@@ -105,25 +110,12 @@ class Separador():
                
         self.root.mainloop()
         
-    def busca_arquivo(self):
-        file_path = filedialog.askopenfilename(title="Selecione um arquivo", filetypes=[("PDF", "*.pdf")])
         
-        self.escreverEntry(self.campo1, file_path)
-        self.abrir_pdf(file_path)
-    
-    def escreverEntry(self, campo, escrita):
-        campo.config(state=tk.NORMAL)    # Habilita a edição temporariamente
-        campo.delete(0, tk.END)          # Apaga todo o texto do Entry
-        campo.insert(0, escrita)
-        campo.config(state=tk.DISABLED)  # Bloqueia a edição novamente
-    
-    def abrir_pdf(self, caminho):
-        #print(r"{}\poppler-23.08.0\Library\bin".format(os.getcwd()))
-        #print(type(caminho))
-        #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"
-        
+    def abrir_pdf(self): #mostra as paginas do pdf na area canvas
+        #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
+           
         self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
-        imagens = convert_from_path(caminho) # converte as paginas para uma lista de imagem
+        imagens = convert_from_path(self.caminho) # converte as paginas para uma lista de imagem
         
         self.escreverEntry(self.qt_folhas, len(imagens))
         self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))
@@ -131,30 +123,54 @@ class Separador():
         y = 0 #contador que devine o espaço entre as imagens e o tamanho do scrollregion
         for img in imagens: #loop para empilhar as imagens do pdf
             self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
-            self.canvas.create_image(200, y, anchor=tk.N, image=self.imagem_tk) #coloca a imagem no canvas
-                
+            self.canvas.create_image(200, y, anchor=tk.N, image=self.imagem_tk) #coloca a imagem no canvas    
             self.imagens_tks.append(self.imagem_tk) #adiciona a imagem a uma lista, para que ela não se perda e continue aparecendo no canvas
             
-            y += 550
-            
+            y += 550  
         self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
         self.canvas.update() #atualiza o canvas com as noavs imagens
 
-        #define o scroll
-        self.scrollbar.configure(orient="vertical", command=self.canvas.yview)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        #DEFINE O SCROLLBAR
+        self.scrollbar.configure(orient="vertical", command=self.canvas.yview) #orientação e comando
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y) #posição
+        self.canvas.configure(yscrollcommand=self.scrollbar.set) #coloca o scrollbar no canvas
         self.canvas.bind_all("<MouseWheel>", self.rolar) # Ative a rolagem com a roda do mouse
 
         #imagem.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
            
-    def rolar(self, event):
+          
+    def separar_pdf(self):
+        
+        pdf_reader = PyPDF2.PdfReader(self.caminho) #Abra o arquivo PDF original
+        qt_dividi = math.ceil(float(self.qt_dividi.get()))
+        qt_paginas = int(self.qt_folhas.get())
+        divsor = int(self.campo_qt_paginas.get())
+            
+        for arquivo in range(qt_dividi):
+            pdf_writer = PyPDF2.PdfWriter() # PdfWriter para os PDFs resultantes
+            
+        for pg in pdf_reader.pages: #teste.py
+            
+            
+        
+          
+           
+    def busca_arquivo(self): # Procura o arquivo que será editado
+        file_path = filedialog.askopenfilename(title="Selecione um arquivo", filetypes=[("PDF", "*.pdf")])
+        self.escreverEntry(self.campo1, file_path)
+        self.caminho = file_path
+        self.abrir_pdf()
+    
+    
+    def escreverEntry(self, campo, escrita): # escreve no entry, definindo qual será o entry e o que será escrito
+        campo.config(state=tk.NORMAL)    # Habilita a edição temporariamente
+        campo.delete(0, tk.END)          # Apaga todo o texto do Entry
+        campo.insert(0, escrita)         # Escreve no entry
+        campo.config(state=tk.DISABLED)  # Bloqueia a edição novamente
+        
+        
+    def rolar(self, event): #definição da ação de rolagem 
         self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
-
-    def para_testar(self):    
-        linha_horizontal = ttk.Separator(orient='horizontal')
-        linha_horizontal.pack(fill='x', padx=20, pady=20)
 
 inicialize = Separador()
 inicialize.janela1()
