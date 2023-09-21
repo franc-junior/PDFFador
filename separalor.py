@@ -25,6 +25,7 @@ class Separador():
         self.scrollbar = Scrollbar()
         self.imagem_tk = None
         self.imagens_tks = []
+        self.matriz = []
         self.caminho = None
     
     def janela1(self):
@@ -89,7 +90,7 @@ class Separador():
         style.configure("Custom.TButton", font=("Helvetica", 16))  # Altere o tamanho da fonte conforme necessário    
             #botão atualizar
         self.botao_atualizar.place(x=40, y=350)
-        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton")
+        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton", command=self.gera_matriz_pdf)
             #botão separar
         self.botao_separar.place(x=200, y=350)
         self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.separar_pdf)
@@ -110,16 +111,36 @@ class Separador():
                
         self.root.mainloop()
         
+    def gera_matriz_pdf(self):    
+        imagens = convert_from_path(self.caminho)
+        
+        self.escreverEntry(self.qt_folhas, len(imagens)) #escreve no entry que indica a quantidade de folhas
+        self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))#escreve no entry que indica a quantidade de pdfs
+        
+        qt_dividi = math.ceil(float(self.qt_dividi.get()))
+        divsor = int(self.campo_qt_paginas.get())
+        
+        self.matriz = []
+
+        cont = 0
+        for pdf in range(qt_dividi):
+            linha = []
+            for col in range(divsor):
+                linha.append(imagens[cont])
+                cont+=1
+            self.matriz.append(linha)
+                
+                 
+        
         
     def abrir_pdf(self): #mostra as paginas do pdf na area canvas
         #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
-           
-        self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
-        imagens = convert_from_path(self.caminho) # converte as paginas para uma lista de imagem
         
-        self.escreverEntry(self.qt_folhas, len(imagens))
-        self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))
-               
+        self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
+                
+        self.gera_matriz_pdf()
+        imagens = self.matriz[0]
+        
         y = 0 #contador que devine o espaço entre as imagens e o tamanho do scrollregion
         for img in imagens: #loop para empilhar as imagens do pdf
             self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
@@ -129,6 +150,7 @@ class Separador():
             y += 550  
         self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
         self.canvas.update() #atualiza o canvas com as noavs imagens
+        
 
         #DEFINE O SCROLLBAR
         self.scrollbar.configure(orient="vertical", command=self.canvas.yview) #orientação e comando
@@ -140,19 +162,19 @@ class Separador():
            
           
     def separar_pdf(self):
-        
         pdf_reader = PyPDF2.PdfReader(self.caminho) #Abra o arquivo PDF original
         qt_dividi = math.ceil(float(self.qt_dividi.get()))
-        qt_paginas = int(self.qt_folhas.get())
         divsor = int(self.campo_qt_paginas.get())
             
-        for arquivo in range(qt_dividi):
-            pdf_writer = PyPDF2.PdfWriter() # PdfWriter para os PDFs resultantes
+        cont = 0
+        for pdf_pg in range(qt_dividi): #loop da quantidade total de arquivos
+            pdf_wr = PyPDF2.PdfWriter() #abre o pdf para escrita
+            for pg in range(divsor): #loop das paginas do arquivo original
+                pdf_wr.add_page(pdf_reader.pages[cont]) #adiciona as paginas ao pdf aberto
+                cont += 1 #contador das paginas
+            with open("pdf{}.pdf".format(pdf_pg), "wb") as output:
+                pdf_wr.write(output) #salva o pdf
             
-        for pg in pdf_reader.pages: #teste.py
-            
-            
-        
           
            
     def busca_arquivo(self): # Procura o arquivo que será editado
