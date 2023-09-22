@@ -103,7 +103,7 @@ class Separador():
         #Edição do nome do pdf  
             #setas que muda de pdf
         self.num_pdf.place(x=720, y=350)
-        self.num_pdf.configure(from_=1, to=100, increment=1, width=3, font=("Helvetica", 16))
+        self.num_pdf.configure(from_=1, to=100, increment=1, width=3, font=("Helvetica", 16), command=self.passa_pdf)
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
         self.nome_pdf.configure(width=25, font=("Helvetica", 16))
@@ -116,6 +116,7 @@ class Separador():
         
         self.escreverEntry(self.qt_folhas, len(imagens)) #escreve no entry que indica a quantidade de folhas
         self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))#escreve no entry que indica a quantidade de pdfs
+        self.num_pdf.configure(to=math.ceil(float(self.qt_dividi.get())))
         
         qt_dividi = math.ceil(float(self.qt_dividi.get()))
         divsor = int(self.campo_qt_paginas.get())
@@ -129,18 +130,12 @@ class Separador():
                 linha.append(imagens[cont])
                 cont+=1
             self.matriz.append(linha)
-                
-                 
+        
+    def passa_pdf(self):
+        self.pdf_canva(self.matriz[int(self.num_pdf.get())-1])
         
         
-    def abrir_pdf(self): #mostra as paginas do pdf na area canvas
-        #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
-        
-        self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
-                
-        self.gera_matriz_pdf()
-        imagens = self.matriz[0]
-        
+    def pdf_canva(self, imagens):
         y = 0 #contador que devine o espaço entre as imagens e o tamanho do scrollregion
         for img in imagens: #loop para empilhar as imagens do pdf
             self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
@@ -149,8 +144,15 @@ class Separador():
             
             y += 550  
         self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
-        self.canvas.update() #atualiza o canvas com as noavs imagens
+        self.canvas.update() #atualiza o canvas com as noavs imagens                  
+             
+    def abrir_pdf(self): #mostra as paginas do pdf na area canvas
+        #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
         
+        self.canvas.delete("all") # Limpe o Canvas, caso já haja imagens anteriores
+        self.gera_matriz_pdf() #gera a matriz
+        imagens = self.matriz[0] #primeiro pdf
+        self.pdf_canva(imagens) #imprime as paginas do pdf no canvas
 
         #DEFINE O SCROLLBAR
         self.scrollbar.configure(orient="vertical", command=self.canvas.yview) #orientação e comando
@@ -161,7 +163,7 @@ class Separador():
         #imagem.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
            
           
-    def separar_pdf(self):
+    def separar_pdf(self): #função responsavel por separar os pdfs com suas devidas paginas
         pdf_reader = PyPDF2.PdfReader(self.caminho) #Abra o arquivo PDF original
         qt_dividi = math.ceil(float(self.qt_dividi.get()))
         divsor = int(self.campo_qt_paginas.get())
@@ -175,8 +177,7 @@ class Separador():
             with open("pdf{}.pdf".format(pdf_pg), "wb") as output:
                 pdf_wr.write(output) #salva o pdf
             
-          
-           
+                    
     def busca_arquivo(self): # Procura o arquivo que será editado
         file_path = filedialog.askopenfilename(title="Selecione um arquivo", filetypes=[("PDF", "*.pdf")])
         self.escreverEntry(self.campo1, file_path)
