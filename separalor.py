@@ -26,6 +26,7 @@ class Separador():
         self.imagem_tk = None
         self.imagens_tks = []
         self.matriz = []
+        self.nome_dos_pdfs = []
         self.caminho = None
     
     def janela1(self):
@@ -107,11 +108,12 @@ class Separador():
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
         self.nome_pdf.configure(width=25, font=("Helvetica", 16))
+        self.nome_pdf.bind("<FocusOut>", self.salva_nome) ################################ quando o entry perder o foco, vai executar a funçã0
 
                
         self.root.mainloop()
         
-    def gera_matriz_pdf(self):    
+    def gera_matriz_pdf(self): #gera uma matriz separando o pdf
         imagens = convert_from_path(self.caminho)
         
         self.escreverEntry(self.qt_folhas, len(imagens)) #escreve no entry que indica a quantidade de folhas
@@ -130,12 +132,24 @@ class Separador():
                 linha.append(imagens[cont])
                 cont+=1
             self.matriz.append(linha)
+            self.nome_dos_pdfs.append("pdf{}.pdf".format(pdf))
         
-    def passa_pdf(self):
-        self.pdf_canva(self.matriz[int(self.num_pdf.get())-1])
+    def passa_pdf(self): # Função responsavel por navegar entre os PDFs e seus nomes
+        nome_dos_pdfs = self.nome_dos_pdfs #lista com o nome dos pdfs
+        num_pdf = int(self.num_pdf.get())-1 
+        self.pdf_canva(self.matriz[num_pdf]) #coloca o pdf setado no num_pdf no canva
+        
+        self.nome_pdf.delete(0, tk.END)          # Apaga todo o texto do Entry
+        self.nome_pdf.insert(0, nome_dos_pdfs[num_pdf])# Escreve no entry
+        #nome_dos_pdfs[num_pdf] = self.nome_pdf.get()
+        #self.nome_dos_pdfs = nome_dos_pdfs
+        
+    def salva_nome(self,a):#########################################
+        pass
+        print("perdeu o focus",a)
         
         
-    def pdf_canva(self, imagens):
+    def pdf_canva(self, imagens): #Organiza todas as imagens do pdf no canva
         y = 0 #contador que devine o espaço entre as imagens e o tamanho do scrollregion
         for img in imagens: #loop para empilhar as imagens do pdf
             self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
