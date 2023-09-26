@@ -28,6 +28,7 @@ class Separador():
         self.matriz = []
         self.nome_dos_pdfs = []
         self.caminho = None
+        self.num_pdf_anterior = [0]
     
     def janela1(self):
         #tela
@@ -105,13 +106,15 @@ class Separador():
             #setas que muda de pdf
         self.num_pdf.place(x=720, y=350)
         self.num_pdf.configure(from_=1, to=100, increment=1, width=3, font=("Helvetica", 16), command=self.passa_pdf)
+
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
         self.nome_pdf.configure(width=25, font=("Helvetica", 16))
         self.nome_pdf.bind("<FocusOut>", self.salva_nome) ################################ quando o entry perder o foco, vai executar a funçã0
-
                
         self.root.mainloop()
+        
+    
         
     def gera_matriz_pdf(self): #gera uma matriz separando o pdf
         imagens = convert_from_path(self.caminho)
@@ -134,7 +137,14 @@ class Separador():
             self.matriz.append(linha)
             self.nome_dos_pdfs.append("pdf{}.pdf".format(pdf))
         
+    def atera_num_anterior(self):
+        num_atual = int(self.num_pdf.get())    
+        self.num_pdf_anterior.append(num_atual)
+        #print("atual", num_atual)    
+        print("anterior",self.num_pdf_anterior[-2])
+            
     def passa_pdf(self): # Função responsavel por navegar entre os PDFs e seus nomes
+        self.atera_num_anterior()
         nome_dos_pdfs = self.nome_dos_pdfs #lista com o nome dos pdfs
         num_pdf = int(self.num_pdf.get())-1 
         self.pdf_canva(self.matriz[num_pdf]) #coloca o pdf setado no num_pdf no canva
@@ -145,7 +155,10 @@ class Separador():
         #self.nome_dos_pdfs = nome_dos_pdfs
         
     def salva_nome(self,a):#########################################
-        pass
+        num_pdf_anteror = self.num_pdf_anterior[-2]-1
+        nome = self.nome_pdf.get()
+        print(num_pdf_anteror, nome)
+        self.nome_dos_pdfs[num_pdf_anteror] = nome
         print("perdeu o focus",a)
         
         
