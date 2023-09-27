@@ -4,6 +4,7 @@ import PyPDF2
 from tkinter import ttk, filedialog, Scrollbar
 from pdf2image import convert_from_path
 from PIL import ImageTk
+#import pyautogui
 
 class Separador():
     def __init__(self):
@@ -30,7 +31,7 @@ class Separador():
         self.caminho = None
         self.num_pdf_anterior = [0]
     
-    def janela1(self):
+    def janela1(self): #interface do sistema
         #tela
         self.root.geometry("800x400")
         self.root.resizable(False, False)
@@ -110,12 +111,16 @@ class Separador():
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
         self.nome_pdf.configure(width=25, font=("Helvetica", 16))
-        self.nome_pdf.bind("<FocusOut>", self.salva_nome) ################################ quando o entry perder o foco, vai executar a funçã0
+        self.nome_pdf.bind("<FocusOut>", self.salva_nome) # quando o entry perder o foco, vai executar a função
+        self.nome_pdf.bind('<KeyPress>', self.volta_foco)
                
         self.root.mainloop()
         
-    
-        
+    def volta_foco(self, acao):#################################################################
+        if acao.keysym == 'Up' or acao.keysym == 'Down':
+            self.num_pdf.focus_set()
+            #self.num_pdf.press('Up')
+            
     def gera_matriz_pdf(self): #gera uma matriz separando o pdf
         imagens = convert_from_path(self.caminho)
         
@@ -135,13 +140,15 @@ class Separador():
                 linha.append(imagens[cont])
                 cont+=1
             self.matriz.append(linha)
-            self.nome_dos_pdfs.append("pdf{}.pdf".format(pdf))
+            self.nome_dos_pdfs.append("pdf{}".format(pdf+1))
         
-    def atera_num_anterior(self):
+        
+    def atera_num_anterior(self): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
         num_atual = int(self.num_pdf.get())    
         self.num_pdf_anterior.append(num_atual)
         #print("atual", num_atual)    
         print("anterior",self.num_pdf_anterior[-2])
+     
             
     def passa_pdf(self): # Função responsavel por navegar entre os PDFs e seus nomes
         self.atera_num_anterior()
@@ -151,15 +158,18 @@ class Separador():
         
         self.nome_pdf.delete(0, tk.END)          # Apaga todo o texto do Entry
         self.nome_pdf.insert(0, nome_dos_pdfs[num_pdf])# Escreve no entry
+        self.nome_pdf.focus_set()
+        self.nome_pdf.select_range(0, 'end')
         #nome_dos_pdfs[num_pdf] = self.nome_pdf.get()
         #self.nome_dos_pdfs = nome_dos_pdfs
         
-    def salva_nome(self,a):#########################################
+        
+    def salva_nome(self,a):#salva os novos nomes dos PDFs na lista
         num_pdf_anteror = self.num_pdf_anterior[-2]-1
         nome = self.nome_pdf.get()
         print(num_pdf_anteror, nome)
         self.nome_dos_pdfs[num_pdf_anteror] = nome
-        print("perdeu o focus",a)
+        #print("perdeu o focus",a)
         
         
     def pdf_canva(self, imagens): #Organiza todas as imagens do pdf no canva
@@ -172,6 +182,7 @@ class Separador():
             y += 550  
         self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
         self.canvas.update() #atualiza o canvas com as noavs imagens                  
+             
              
     def abrir_pdf(self): #mostra as paginas do pdf na area canvas
         #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
@@ -194,6 +205,7 @@ class Separador():
         pdf_reader = PyPDF2.PdfReader(self.caminho) #Abra o arquivo PDF original
         qt_dividi = math.ceil(float(self.qt_dividi.get()))
         divsor = int(self.campo_qt_paginas.get())
+        lista_nomes = self.nome_dos_pdfs
             
         cont = 0
         for pdf_pg in range(qt_dividi): #loop da quantidade total de arquivos
@@ -201,7 +213,7 @@ class Separador():
             for pg in range(divsor): #loop das paginas do arquivo original
                 pdf_wr.add_page(pdf_reader.pages[cont]) #adiciona as paginas ao pdf aberto
                 cont += 1 #contador das paginas
-            with open("pdf{}.pdf".format(pdf_pg), "wb") as output:
+            with open("{}.pdf".format(lista_nomes[pdf_pg]), "wb") as output:
                 pdf_wr.write(output) #salva o pdf
             
                     
