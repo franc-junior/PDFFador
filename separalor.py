@@ -30,7 +30,7 @@ class Separador():
         self.nome_dos_pdfs = []
         self.caminho = None
         self.num_pdf_anterior = [0]
-        #self.tam_num_pdf_anterior = 1
+        self.tam_num_pdf_anterior = 1
     
     def reset__init__(self):
         self.imagem_tk = None
@@ -102,7 +102,7 @@ class Separador():
         style.configure("Custom.TButton", font=("Helvetica", 16))  # Altere o tamanho da fonte conforme necessário    
             #botão atualizar
         self.botao_atualizar.place(x=40, y=350)
-        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton", command=self.gera_matriz_pdf)
+        self.botao_atualizar.configure(text="ATUALIZAR",style="Custom.TButton", command=self.atualizar)
             #botão separar
         self.botao_separar.place(x=200, y=350)
         self.botao_separar.configure(text="SEPARAR",style="Custom.TButton" ,command=self.separar_pdf)
@@ -110,7 +110,7 @@ class Separador():
         #Area que mostra a imagem
         self.canvas.configure(width=390, height=400)
         self.canvas.place(x=390)
-        self.canvas.create_rectangle(1, 1, 390, 300, fill="#FBF7B9")
+        self.canvas.create_rectangle(1, 1, 390, 300, fill="#FBF790")
                
         #Edição do nome do pdf  
             #setas que muda de pdf
@@ -132,13 +132,12 @@ class Separador():
         self.escreverEntry(self.qt_dividi, len(imagens)/int(self.campo_qt_paginas.get()))#escreve no entry que indica a quantidade de pdfs
         self.num_pdf.configure(to=math.ceil(float(self.qt_dividi.get())))
         
-        qt_dividi = math.ceil(float(self.qt_dividi.get()))
-        divsor = int(self.campo_qt_paginas.get())
-        
+        qt_dividi = math.ceil(float(self.qt_dividi.get())) #valor de PDFs divididos
+        divsor = int(self.campo_qt_paginas.get()) #divisor
         self.matriz = []
 
         cont = 0
-        for pdf in range(qt_dividi):
+        for pdf in range(qt_dividi): #loop que gera a matriz com as paginas dos PDFs divididos
             linha = []
             for col in range(divsor):
                 linha.append(imagens[cont])
@@ -147,12 +146,6 @@ class Separador():
             self.nome_dos_pdfs.append("pdf{}".format(pdf+1))
         
         
-    def atera_num_anterior(self): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
-        num_atual = int(self.num_pdf.get()) 
-        
-        self.num_pdf_anterior.append(num_atual)
-        #print("atual", num_atual)    
-        print("anterior",self.num_pdf_anterior[-2])
      
             
     def passa_pdf(self): # Função responsavel por navegar entre os PDFs e seus nomes
@@ -170,19 +163,22 @@ class Separador():
         
         
     def salva_nome(self,a):#salva os novos nomes dos PDFs na lista
+        tam_lista = len(self.num_pdf_anterior) 
         novo_foco = str(a.widget.focus_get())
         nome = self.nome_pdf.get()
-        #print("\nas coisa",len(self.num_pdf_anterior), self.tam_num_pdf_anterior)
-        if novo_foco == ".!spinbox2":
+        #print("\nas coisa",tam_lista, self.tam_num_pdf_anterior)
+        
+        if novo_foco == ".!spinbox2" and tam_lista != self.tam_num_pdf_anterior:
             num_pdf_anteror = self.num_pdf_anterior[-2]-1
             #print("11111111")
         else:
             num_pdf_anteror = self.num_pdf_anterior[-1]-1
             #print("22222222")
         self.nome_dos_pdfs[num_pdf_anteror] = nome
-        print(type(novo_foco), novo_foco)
-        print(self.num_pdf_anterior)
+        self.tam_num_pdf_anterior = tam_lista
         
+        # print(type(novo_foco), novo_foco)
+        # print(self.num_pdf_anterior)
         
         
     def pdf_canva(self, imagens): #Organiza todas as imagens do pdf no canva
@@ -191,11 +187,24 @@ class Separador():
             self.imagem_tk = ImageTk.PhotoImage(img.resize((380,540))) #converte para um formato que pode ser exibido no cavas e diminui o tamanho da imagem
             self.canvas.create_image(200, y, anchor=tk.N, image=self.imagem_tk) #coloca a imagem no canvas    
             self.imagens_tks.append(self.imagem_tk) #adiciona a imagem a uma lista, para que ela não se perda e continue aparecendo no canvas
-            
             y += 550  
         self.canvas.config(scrollregion=(0, 0, 0, y), width=400, height=330) #tamanho do scrollregion
         self.canvas.update() #atualiza o canvas com as noavs imagens                  
-             
+    
+    
+    def atualizar(self):
+        self.abrir_pdf()    
+        
+        
+    def zerar_variaveis(self):
+        self.imagem_tk = None
+        self.imagens_tks = []
+        self.matriz = []
+        self.nome_dos_pdfs = []
+        self.caminho = None
+        self.num_pdf_anterior = [0]
+        self.tam_num_pdf_anterior = 1
+                
              
     def abrir_pdf(self): #mostra as paginas do pdf na area canvas
         #os.environ['POPPLER_PATH'] = r"D:/Estudo/GitHub/PDFFador/poppler-23.08.0/Library/bin"  
@@ -231,8 +240,17 @@ class Separador():
                 print("{}".format(lista_nomes[pdf_pg]), pdf_pg)
         #self.reset__init__()
             
+            
+    def atera_num_anterior(self): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
+        num_atual = int(self.num_pdf.get()) 
+        self.num_pdf_anterior.append(num_atual)
+        
+        #print("atual", num_atual)    
+        #print("anterior",self.num_pdf_anterior[-2]) 
+        
                     
     def busca_arquivo(self): # Procura o arquivo que será editado
+        self.zerar_variaveis()
         file_path = filedialog.askopenfilename(title="Selecione um arquivo", filetypes=[("PDF", "*.pdf")])
         self.escreverEntry(self.campo1, file_path)
         self.caminho = file_path
