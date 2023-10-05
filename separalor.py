@@ -1,7 +1,9 @@
 import math
 import tkinter as tk
 import PyPDF2
+import os
 from tkinter import ttk, filedialog, Scrollbar
+from ttkthemes import ThemedStyle
 from pdf2image import convert_from_path
 from PIL import ImageTk
 #import pyautogui
@@ -114,8 +116,10 @@ class Separador():
                
         #Edição do nome do pdf  
             #setas que muda de pdf
+        # style_spin = ThemedStyle()
+        # style_spin.configure("TSpinbox", arrowsize=10)
         self.num_pdf.place(x=720, y=350)
-        self.num_pdf.configure(from_=1, to=100, increment=1, width=3, font=("Helvetica", 16), state="readonly", command=self.passa_pdf)
+        self.num_pdf.configure(from_=1, to=100, style="TSpinbox" , increment=1, width=3, font=("Helvetica", 16), state="readonly", command=self.passa_pdf)
 
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
@@ -166,7 +170,7 @@ class Separador():
         tam_lista = len(self.num_pdf_anterior) 
         novo_foco = str(a.widget.focus_get())
         nome = self.nome_pdf.get()
-        #print("\nas coisa",tam_lista, self.tam_num_pdf_anterior)
+        print("\nas coisa",tam_lista, self.tam_num_pdf_anterior)
         
         if novo_foco == ".!spinbox2" and tam_lista != self.tam_num_pdf_anterior:
             num_pdf_anteror = self.num_pdf_anterior[-2]-1
@@ -266,6 +270,10 @@ class Separador():
         
     def rolar(self, event): #definição da ação de rolagem 
         self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
+        
+caminho = os.getcwd() + r"\PDFFador\poppler-23.08.0\Library\bin" 
+print(caminho)    
+os.environ['PATH'] = caminho
 
 inicialize = Separador()
 inicialize.janela1()
