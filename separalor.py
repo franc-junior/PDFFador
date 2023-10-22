@@ -31,16 +31,7 @@ class Separador():
         self.matriz = []
         self.nome_dos_pdfs = []
         self.caminho = None
-        self.num_pdf_anterior = [0]
-        self.tam_num_pdf_anterior = 1
-    
-    def reset__init__(self):
-        self.imagem_tk = None
-        self.imagens_tks = []
-        self.matriz = []
-        self.nome_dos_pdfs = []
-        self.caminho = None
-        self.num_pdf_anterior = [0]
+        self.num_pdf_anterior = [1]
     
     def janela1(self): #interface do sistema
         #tela
@@ -113,6 +104,7 @@ class Separador():
         self.canvas.configure(width=390, height=400)
         self.canvas.place(x=390)
         self.canvas.create_rectangle(1, 1, 390, 300, fill="#FBF790")
+        self.canvas.bind('<Motion>', self.zoom) ####################################
                
         #Edição do nome do pdf  
             #setas que muda de pdf
@@ -120,6 +112,7 @@ class Separador():
         # style_spin.configure("TSpinbox", arrowsize=10)
         self.num_pdf.place(x=720, y=350)
         self.num_pdf.configure(from_=1, to=100, style="TSpinbox" , increment=1, width=3, font=("Helvetica", 16), state="readonly", command=self.passa_pdf)
+        self.num_pdf.bind("<FocusIn>", self.atera_num_anterior)
 
             #campo de texto que renomeia o pdf
         self.nome_pdf.place(x=390, y=350)
@@ -128,6 +121,30 @@ class Separador():
                
         self.root.mainloop()
         
+    def atera_num_anterior(self, a): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
+        num_atual = int(self.num_pdf.get())
+        print(a)  
+        self.num_pdf_anterior.append(num_atual)
+        self.nome_pdf.focus_set()
+    
+    
+    def salva_nome(self,a):#salva os novos nomes dos PDFs na lista
+        print(self.num_pdf_anterior)
+        novo_foco = str(a.widget.focus_get())
+        nome = self.nome_pdf.get()
+        
+        if novo_foco == ".!spinbox2":
+            num_pdf_anteror = self.num_pdf_anterior[-1]-1
+            
+        self.nome_dos_pdfs[num_pdf_anteror] = nome
+    
+    
+    def zoom(self, event):
+        x = event.x
+        y = event.y
+        self.canvas.update()
+    
+    
             
     def gera_matriz_pdf(self): #gera uma matriz separando o pdf
         imagens = convert_from_path(self.caminho)
@@ -153,36 +170,19 @@ class Separador():
      
             
     def passa_pdf(self): # Função responsavel por navegar entre os PDFs e seus nomes
-        self.atera_num_anterior()
+        #self.atera_num_anterior()
         nome_dos_pdfs = self.nome_dos_pdfs #lista com o nome dos pdfs
         num_pdf = int(self.num_pdf.get())-1 
         self.pdf_canva(self.matriz[num_pdf]) #coloca o pdf setado no num_pdf no canva
         
         self.nome_pdf.delete(0, tk.END)          # Apaga todo o texto do Entry
         self.nome_pdf.insert(0, nome_dos_pdfs[num_pdf])# Escreve no entry
-        self.nome_pdf.focus_set()
+        #self.nome_pdf.focus_set()
         self.nome_pdf.select_range(0, 'end')
         #nome_dos_pdfs[num_pdf] = self.nome_pdf.get()
         #self.nome_dos_pdfs = nome_dos_pdfs
         
         
-    def salva_nome(self,a):#salva os novos nomes dos PDFs na lista
-        tam_lista = len(self.num_pdf_anterior) 
-        novo_foco = str(a.widget.focus_get())
-        nome = self.nome_pdf.get()
-        print("\nas coisa",tam_lista, self.tam_num_pdf_anterior)
-        
-        if novo_foco == ".!spinbox2" and tam_lista != self.tam_num_pdf_anterior:
-            num_pdf_anteror = self.num_pdf_anterior[-2]-1
-            #print("11111111")
-        else:
-            num_pdf_anteror = self.num_pdf_anterior[-1]-1
-            #print("22222222")
-        self.nome_dos_pdfs[num_pdf_anteror] = nome
-        self.tam_num_pdf_anterior = tam_lista
-        
-        # print(type(novo_foco), novo_foco)
-        # print(self.num_pdf_anterior)
         
         
     def pdf_canva(self, imagens): #Organiza todas as imagens do pdf no canva
@@ -206,8 +206,7 @@ class Separador():
         self.matriz = []
         self.nome_dos_pdfs = []
         self.caminho = None
-        self.num_pdf_anterior = [0]
-        self.tam_num_pdf_anterior = 1
+        self.num_pdf_anterior = [1]
                 
              
     def abrir_pdf(self): #mostra as paginas do pdf na area canvas
@@ -245,12 +244,6 @@ class Separador():
         #self.reset__init__()
             
             
-    def atera_num_anterior(self): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
-        num_atual = int(self.num_pdf.get()) 
-        self.num_pdf_anterior.append(num_atual)
-        
-        #print("atual", num_atual)    
-        #print("anterior",self.num_pdf_anterior[-2]) 
         
                     
     def busca_arquivo(self): # Procura o arquivo que será editado
