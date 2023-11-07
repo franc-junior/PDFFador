@@ -3,7 +3,6 @@ import tkinter as tk
 import PyPDF2
 import os
 from tkinter import ttk, filedialog, Scrollbar
-from ttkthemes import ThemedStyle
 from pdf2image import convert_from_path
 from PIL import ImageTk
 #import pyautogui
@@ -13,10 +12,12 @@ class Separador():
         self.root = tk.Tk()
         #button
         self.botao_selecionar = ttk.Button()
+        self.botao_onde_salvar = ttk.Button()
         self.botao_atualizar = ttk.Button()
         self.botao_separar = ttk.Button()
         #entry
         self.campo1 = ttk.Entry()
+        self.campo_onde_salvar = ttk.Entry()
         self.qt_folhas = ttk.Entry()
         self.qt_dividi = ttk.Entry()
         self.nome_pdf = ttk.Entry()
@@ -60,9 +61,15 @@ class Separador():
         label1 = ttk.Label(text="Intervalo:",font=("Helvetica", 10))
         label1.place(x=40, y=120)
             #campo para definir a separação das paginas
-        self.campo_qt_paginas.place(x=100, y=121)
-        self.campo_qt_paginas.configure(from_=1, to=2, increment=1, width=5)
+        self.campo_qt_paginas.place(x=97, y=121)
+        self.campo_qt_paginas.configure(from_=1,to=100, increment=1, width=5)
         self.campo_qt_paginas.insert(0,1)
+            #botão selecionar
+        self.botao_onde_salvar.place(x=160, y=119)
+        self.botao_onde_salvar.configure(text="OndeSalvar", command=self.busca_arquivo)
+            #campo de texto que mostra o caminho do arquivo
+        self.campo_onde_salvar.place(x=240, y=120)
+        self.campo_onde_salvar.configure(width=21)
         
         #DADOS do pdf x=horizontal, y=vertical
             #linha
@@ -122,8 +129,7 @@ class Separador():
         self.root.mainloop()
         
     def atera_num_anterior(self, a): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
-        num_atual = int(self.num_pdf.get())
-        print(a)  
+        num_atual = int(self.num_pdf.get())  
         self.num_pdf_anterior.append(num_atual)
         self.nome_pdf.focus_set()
     
@@ -140,11 +146,8 @@ class Separador():
     
     
     def zoom(self, event):
-        x = event.x
-        y = event.y
-        self.canvas.update()
-    
-    
+        pass
+        
             
     def gera_matriz_pdf(self): #gera uma matriz separando o pdf
         imagens = convert_from_path(self.caminho)
