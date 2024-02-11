@@ -32,6 +32,7 @@ class Separador():
         self.matriz = []
         self.nome_dos_pdfs = []
         self.caminho = None
+        self.caminho_salvar = None
         self.num_pdf_anterior = [1]
     
     def janela1(self): #interface do sistema
@@ -66,7 +67,7 @@ class Separador():
         self.campo_qt_paginas.insert(0,1)
             #botão selecionar
         self.botao_onde_salvar.place(x=160, y=119)
-        self.botao_onde_salvar.configure(text="OndeSalvar", command=self.busca_arquivo)
+        self.botao_onde_salvar.configure(text="OndeSalvar", command=self.lugarSalvar)
             #campo de texto que mostra o caminho do arquivo
         self.campo_onde_salvar.place(x=240, y=120)
         self.campo_onde_salvar.configure(width=21)
@@ -127,6 +128,13 @@ class Separador():
         self.nome_pdf.bind("<FocusOut>", self.salva_nome) # quando o entry perder o foco, vai executar a função
                
         self.root.mainloop()
+    
+    def lugarSalvar(self):
+        #self.zerar_variaveis()
+        file_path = filedialog.askdirectory(title="Selecione uma pasta")
+        self.escreverEntry(self.campo_onde_salvar, file_path)
+        self.caminho_salvar = file_path
+        #self.abrir_pdf()
         
     def atera_num_anterior(self, a): #sempre que muda de numero no pdf_num o novo numero é adicionado a lista, então para pegar o numero anterior, é só pegar o penultimo numero da lista
         num_atual = int(self.num_pdf.get())  
@@ -241,9 +249,9 @@ class Separador():
             for pg in range(divsor): #loop das paginas do arquivo original
                 pdf_wr.add_page(pdf_reader.pages[cont]) #adiciona as paginas ao pdf aberto
                 cont += 1 #contador das paginas
-            with open("{}.pdf".format(lista_nomes[pdf_pg]), "wb") as output:
+            with open("{}/{}.pdf".format(self.caminho_salvar, lista_nomes[pdf_pg]), "wb") as output:
                 pdf_wr.write(output) #salva o pdf
-                print("{}".format(lista_nomes[pdf_pg]), pdf_pg)
+                print("\n{}/{}".format(self.caminho_salvar, lista_nomes[pdf_pg]), pdf_pg)
         #self.reset__init__()
             
             
@@ -267,7 +275,7 @@ class Separador():
     def rolar(self, event): #definição da ação de rolagem 
         self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
         
-caminho = os.getcwd() + r"\PDFFador\poppler-23.08.0\Library\bin" 
+caminho = os.getcwd() + r"\poppler-23.08.0\Library\bin" 
 print(caminho)    
 os.environ['PATH'] = caminho
 
