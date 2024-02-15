@@ -11,5 +11,5 @@
 ## Exemplo Pratico
 - No exemplo, é apresentado um PDF simulando um documento digitalizado que inclui cinco documentos distintos, cada um com dados dispostos na frente e no verso da folha.
 
-![image](https://github.com/X1K00/PDFFador/assets/101655473/11d8bde2-5df6-483b-a93b-a05d54dddc3c)](https://github.com/X1K00/PDFFador/blob/main/Separar%20PDFs.mp4)
+![image](https://github.com/X1K00/PDFFador/assets/101655473/11d8bde2-5df6-483b-a93b-a05d54dddc3c)](https://youtu.be/OMdcjv0o68M)
 
