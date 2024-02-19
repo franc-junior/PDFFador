@@ -158,6 +158,8 @@ class Separador():
         
             
     def gera_matriz_pdf(self): #gera uma matriz separando o pdf
+        self.nome_dos_pdfs = []
+        
         imagens = convert_from_path(self.caminho)
         
         self.escreverEntry(self.qt_folhas, len(imagens)) #escreve no entry que indica a quantidade de folhas
